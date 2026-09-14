@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+    <remote name="github" fetch="https://github.com/" />
+    <remote name="gitlab" fetch="https://gitlab.com/" />
+
+    <project path="device/phh/treble" remote="github" name="TrebleDroid/device_phh_treble" revision="android-16.0" />
+    <project path="hardware/oplus" remote="github" name="LineageOS/android_hardware_oplus" revision="lineage-23.2" />
+
+    <project path="vendor/gapps" remote="gitlab" name="MindTheGapps/vendor_gapps" revision="baklava" />
+    <project path="vendor/hardware_overlay" remote="github" name="Doze-off/vendor_hardware_overlay" revision="pie" />
+    <project path="vendor/interfaces" remote="github" name="TrebleDroid/vendor_interfaces" revision="android-16.0" />
+    <project path="vendor/lptools" remote="github" name="phhusson/vendor_lptools" revision="master" />
+    <project path="vendor/magisk" remote="github" name="phhusson/vendor_magisk" revision="android-10.0" />
+    <project path="vendor/vndk-tests" remote="github" name="phhusson/vendor_vndk-tests" revision="master" />
+
+    <project path="packages/apps/QcRilAm" remote="github" name="AndyCGYan/android_packages_apps_QcRilAm" revision="master" />
+
+    <project path="prebuilts/vndk/v28" remote="github" name="naz664/prebuilts_vndk_v28" revision="master" />
+    <project path="prebuilts/vndk/v29" remote="aosp" name="platform/prebuilts/vndk/v29" clone-depth="1" revision="bef5d37dda9360940964f097d612c8032e140961" />
+    <project path="prebuilts/vndk/v30" remote="aosp" name="platform/prebuilts/vndk/v30" clone-depth="1" revision="5f9884aa352825291757dfd6694b874ad8c1805e" />
+
+    <project path="treble_app" remote="github" name="AndroidROMx/treble_app" revision="master" />
+</manifest>
