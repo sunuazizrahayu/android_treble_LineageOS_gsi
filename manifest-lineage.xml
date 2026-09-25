@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Local manifest untuk LineageOS 23.2 (Android 16) TrebleDroid GSI
-     jalur LINEAGE (dengan patches upstream MisterZtr/LineageOS_gsi).
-     Cara pakai: setup.sh dengan flag upstream (lihat README bagian 4).
+     jalur LINEAGE (dengan patches lineage kurasi dari MisterZtr/LineageOS_gsi).
+     Cara pakai: setup.sh dengan flag --lineage (lihat README bagian 4).
      (atau salin file ini ke .repo/local_manifests/manifest.xml).
      PENTING: jangan gabungkan dengan patches/ repo ini (treble-only) -
      kedua set menyelesaikan masalah yang sama dengan cara berlawanan
      (charger, APN, vibrator) dan akan konflik bila dipakai bersamaan.
-     Untuk jalur lineage, terapkan HANYA patches upstream. -->
+     Untuk jalur lineage, terapkan HANYA patches/lineage (jangan campur patches treble). -->
 <manifest>
     <!-- remote github/aosp dipakai bawaan Lineage (jangan didefinisikan
          ulang di sini, repo menolak duplikat dengan atribut berbeda) -->
@@ -25,7 +25,7 @@
     <project path="vendor/gapps" remote="gitlab" name="MindTheGapps/vendor_gapps" revision="baklava" />
 
     <!-- Overlay vendor & perkakas phh (overlay memakai fork MisterZtr
-         karena patches upstream menargetkannya) -->
+         karena patches lineage kurasi menargetkannya) -->
     <project path="vendor/hardware_overlay" remote="github" name="MisterZtr/vendor_hardware_overlay" revision="main" />
     <project path="vendor/vndk-tests" remote="github" name="phhusson/vendor_vndk-tests" revision="master" />
     <project path="vendor/lptools" remote="github" name="phhusson/vendor_lptools" revision="master" />

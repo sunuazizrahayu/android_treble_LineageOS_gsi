@@ -9,10 +9,10 @@ Unofficial **LineageOS 23.2 GSI (Generic System Image, Android 16)** berbasis Tr
 | File | Fungsi |
 |---|---|
 | `manifest.xml` | Local manifest **minimal** TrebleDroid: `device/phh/treble`, `vendor/interfaces`, `hardware/oplus`, `vendor/hardware_overlay`, prebuilt VNDK v28/v29. Disalin ke `.repo/local_manifests/` saat setup. Contoh entri GApps ada di komentar atas file-nya. |
-| `manifest-lineage.xml` | Local manifest **lengkap** untuk jalur Lineage (patches upstream): treble_app, QcRilAm, perkakas phh, overlay fork MisterZtr, VNDK v28–v30, GApps. Dipakai via `./setup.sh DIR --upstream`. Jangan campur dengan `patches/` repo ini. |
+| `manifest-lineage.xml` | Local manifest **lengkap** untuk jalur Lineage (patches lineage kurasi): treble_app, QcRilAm, perkakas phh, overlay fork MisterZtr, VNDK v28–v30, GApps. Dipakai via `./setup.sh DIR --lineage`. Jangan campur dengan patches treble. |
 | `setup.sh` | Otomatisasi: `repo init` → pasang manifest → `repo sync` → terapkan patches. |
 | `build.sh` | Build GSI per varian (vanilla/gapps × erofs/ext4). |
-| `patches/` | Patches lokal + `apply-patches.sh` idempotent untuk build treble tanpa patch upstream. |
+| `patches/` | `personal/` (jalur treble), `lineage/` kurasi (jalur lineage, menciptakan target `lineage_*`) + `apply-patches.sh` idempotent (`--lineage` untuk lineage). |
 
 ## Kebutuhan mesin build
 
@@ -88,41 +88,6 @@ Catatan:
   `git config --global user.name "nama"` dan `git config --global user.email "email"`, lalu ulangi apply-nya.
 - Alternatif otomatis untuk semua langkah di atas: `./setup.sh ~/LineageOS` (lihat isi `setup.sh`).
 
-## 4. Build Lineage GSI (patches upstream)
-
-Jalur ini menghasilkan GSI LineageOIS yang bisa boot di HP real (sudah
-terbukti), memakai ~314 patch TrebleDroid dari `MisterZtr/LineageOS_gsi`.
-Setup-nya sama seperti bagian 2, dengan dua perbedaan:
-
-```bash
-# pakai manifest-lineage.xml (bukan manifest.xml)
-curl -L https://raw.githubusercontent.com/sunuazizrahayu/android_treble_LineageOS_gsi/23.2/manifest-lineage.xml -o .repo/local_manifests/manifest.xml
-
-# atau otomatis:
-./setup.sh ~/LineageOS --upstream
-```
-
-Lalu terapkan **hanya** patches upstream (314 file, butuh git identity):
-
-```bash
-git clone https://github.com/MisterZtr/LineageOS_gsi.git LineageOS_gsi_upstream -b lineage-23.2 --depth 1
-bash LineageOS_gsi_upstream/patches/apply-patches.sh .
-```
-
-Terakhir build (tanpa `generate.sh` — definisi product `lineage_*` sudah
-dibawa oleh patches):
-
-```bash
-. build/envsetup.sh
-breakfast lineage_arm64_bvN4-bp4a-userdebug   # vanilla ext4, contoh awal yang disarankan
-make systemimage -j$(nproc --all)
-```
-
-> JANGAN campur kedua set patch. `patches/` repo ini (jalur treble) dan
-> patches upstream (jalur lineage) menyelesaikan masalah yang sama dengan
-> cara berlawanan (charger, APN, vibrator) — dipakai bersamaan pasti konflik.
-> Pilih satu jalur per source tree.
-
 ## 3. Build
 
 ```bash
@@ -143,7 +108,7 @@ Hasil build:
 out/target/product/tdgsi_arm64_ab/system.img
 ```
 
-> Varian di bawah ini butuh patches upstream (MisterZtr) yang menciptakan
+> Varian di bawah ini butuh patches lineage kurasi yang menciptakan
 > target `lineage_*` — belum dipakai di alur ini, dicatat untuk nanti:
 
 | Varian | Filesystem | Perintah |
@@ -153,7 +118,7 @@ out/target/product/tdgsi_arm64_ab/system.img
 | GAPPS | EROFS | `bash LineageOS_gsi/build.sh --variant gapps --fs erofs` |
 | GAPPS | ext4 | `bash LineageOS_gsi/build.sh --variant gapps --fs ext4` |
 
-Nama lunch target lengkap (butuh patches upstream):
+Nama lunch target lengkap (butuh patches lineage kurasi):
 
 - VANILLA EROFS: `lineage_arm64_bvNE-bp4a-userdebug`
 - VANILLA ext4: `lineage_arm64_bvN4-bp4a-userdebug`
@@ -161,6 +126,42 @@ Nama lunch target lengkap (butuh patches upstream):
 - GAPPS ext4: `lineage_arm64_bgN4-bp4a-userdebug`
 
 `bvN` = vanilla (tanpa GApps), `bgN` = dengan GApps (MindTheGapps). EROFS butuh kernel 5.4+ di perangkat; bila ragu/bootloop, pakai varian ext4 (read-write penuh).
+
+## 4. Build Lineage GSI (patches lineage kurasi)
+
+Jalur ini menghasilkan GSI Lineage yang bisa boot di HP real. Kuncinya
+satu patch kurasi dari `MisterZtr/LineageOS_gsi` di `patches/lineage/`
+(yang menciptakan target `lineage_*` + `lineage.mk`) — tanpa 314 file
+lainnya. Patch kurasi tambahan menyusul hanya bila build terbukti butuh.
+Setup-nya sama seperti bagian 2, dengan dua perbedaan:
+
+```bash
+# pakai manifest-lineage.xml (bukan manifest.xml)
+curl -L https://raw.githubusercontent.com/sunuazizrahayu/android_treble_LineageOS_gsi/23.2/manifest-lineage.xml -o .repo/local_manifests/manifest.xml
+
+# atau otomatis (sekaligus sync + apply lineage):
+./setup.sh ~/LineageOS --lineage
+```
+
+Lalu terapkan **hanya** patches lineage (butuh git identity):
+
+```bash
+bash <path-ke-repo-ini>/patches/apply-patches.sh --lineage
+```
+
+Terakhir build (tanpa `generate.sh` — definisi product `lineage_*` sudah
+dibawa oleh patches):
+
+```bash
+. build/envsetup.sh
+breakfast lineage_arm64_bvN4-bp4a-userdebug   # vanilla ext4, contoh awal yang disarankan
+make systemimage -j$(nproc --all)
+```
+
+> JANGAN campur kedua set patch. `patches/personal` + `patches/vendor_interfaces`
+> (jalur treble) dan `patches/lineage` (jalur lineage) menyelesaikan masalah
+> yang sama dengan cara berlawanan (charger, APN, vibrator) — dipakai
+> bersamaan pasti konflik. Pilih satu jalur per source tree.
 
 ## 5. Kompres hasil (opsional)
 
@@ -183,7 +184,7 @@ make systemimage -j$(nproc --all) DISABLE_DEXPREOPT_CHECK=true
 
 - **`Don't have a product spec for ...` saat lunch** → `generate.sh` belum dijalankan, atau dijalankan dari folder yang salah (script ini menulis file ke **folder aktif**, jadi `bash device/phh/treble/generate.sh` dari root justru bikin file nyasar). Selalu pakai bentuk subshell dari root source tree: `(cd device/phh/treble && bash generate.sh)`, pastikan `treble_arm64_bvN.mk` muncul, lalu lunch ulang di terminal fresh.
 - **`repo: command not found`** → pasang tool `repo` seperti di bagian dependensi, pastikan `~/.bin` ada di `PATH`.
-- **Gagal apply patch / konflik** → patch harus diterapkan manual satu per satu (`git apply --check`, `git am`), biasanya karena source upstream berubah. Sinkronkan ulang patches dengan upstream `MisterZtr/LineageOS_gsi`.
+- **Gagal apply patch / konflik** → patch harus diterapkan manual satu per satu (`git apply --check`, `git am`), biasanya karena source berubah. Untuk set kurasi, ambil ulang file patch dari `MisterZtr/LineageOS_gsi`.
 - **Build OOM / killed** → kurangi jobs (`--jobs 4`), tambah RAM/swap.
 - **Disk penuh** → butuh 400 GB+; bersihkan dengan `make clean` atau hapus `out/` bila ingin build ulang penuh.
 - **Bootloop di HP, EROFS** → coba varian ext4; pastikan perangkat `arm64 A/B` dan vendor Android yang kompatibel.

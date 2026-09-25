@@ -2,16 +2,20 @@
 # apply-patches.sh - Terapkan patches repo ini ke source tree Android.
 # Jalankan dari ROOT source tree (folder yang berisi build/envsetup.sh):
 #
-#   bash <path-ke-repo-ini>/patches/apply-patches.sh
+#   bash <path-ke-repo-ini>/patches/apply-patches.sh            # patches lokal (jalur treble)
+#   bash <path-ke-repo-ini>/patches/apply-patches.sh --lineage  # patches lineage (jalur lineage)
 #
 # Contoh bila repo ini di-clone di samping source tree:
-#   cd ~/LineageOS_gsi && bash ~/android_treble_LineageOS_gsi/patches/apply-patches.sh
+#   cd ~/LineageOS && bash ~/android_treble_LineageOS_gsi/patches/apply-patches.sh --lineage
 #
-# Contoh bila folder repo ini disalin ke dalam source tree sebagai LineageOS_gsi/:
-#   cd ~/LineageOS_gsi && bash LineageOS_gsi/patches/apply-patches.sh
+# Contoh bila repo ini ada di dalam source tree sebagai LineageOS_gsi/:
+#   cd ~/LineageOS && bash LineageOS_gsi/patches/apply-patches.sh --lineage
 #
-# Struktur patches: patches/<grup>/<nama_dir_dengan_underscore>/*.patch
+# Struktur patches lokal: patches/<grup>/<nama_dir_dengan_underscore>/*.patch
 # Contoh: patches/personal/device_phh_treble/*.patch diterapkan di device/phh/treble.
+# Struktur patches lineage: patches/lineage/<nama_dir_dengan_underscore>/*.patch
+# (kurasi minimal dari MisterZtr/LineageOS_gsi - hanya yang menciptakan
+# target lineage_*, ditambah fix build lain bila terbukti perlu).
 #
 # Script ini idempotent: aman dijalankan berulang kali. Patch yang sudah
 # kepasang terdeteksi dan di-skip (bukan error).
@@ -88,4 +92,9 @@ apply_patch_dir() {
     done
 }
 
-apply_patch_dir "$PATCHES_DIR/personal" "PERSONAL"
+if [ "${1:-}" == "--lineage" ]; then
+    # Jalur lineage: HANYA set kurasi, jangan campur patches treble.
+    apply_patch_dir "$PATCHES_DIR/lineage" "LINEAGE"
+else
+    apply_patch_dir "$PATCHES_DIR/personal" "PERSONAL"
+fi

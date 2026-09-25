@@ -3,15 +3,15 @@
 # Jalankan dari MESIN BUILD (Ubuntu 22.04/24.04, RAM 16GB+, disk kosong 400GB+),
 # BUKAN di container kecil. Lihat README.md untuk prasyarat lengkap.
 #
-#   ./setup.sh [SOURCE_DIR] [--upstream]
+#   ./setup.sh [SOURCE_DIR] [--lineage]
 #
 # Contoh:
 #   ./setup.sh ~/LineageOS              # jalur treble (patches/ repo ini)
-#   ./setup.sh ~/LineageOS --upstream   # jalur lineage (patches MisterZtr)
+#   ./setup.sh ~/LineageOS --lineage   # jalur lineage (patches lineage kurasi)
 #
 # Dua jalur ini SALING LEPAS, jangan campur patches-nya:
-# - treble   : manifest.xml + patches/ repo ini, lalu generate.sh + lunch treble_*
-# - upstream : manifest-lineage.xml + patches MisterZtr, lalu lunch lineage_*
+# - treble   : manifest.xml + patches/ lokal, lalu generate.sh + lunch treble_*
+# - lineage  : manifest-lineage.xml + patches/lineage kurasi, lalu lunch lineage_*
 #   (tanpa generate.sh - definisi product lineage_* datang dari patches)
 #
 # Langkah yang dilakukan (mode treble):
@@ -25,20 +25,20 @@
 set -euo pipefail
 
 SOURCE_DIR="$HOME/LineageOS"
-UPSTREAM=0
+LINEAGE=0
 for arg in "$@"; do
   case "$arg" in
-    --upstream) UPSTREAM=1 ;;
+    --lineage) LINEAGE=1 ;;
     -h|--help)
-      echo "Pakai: $0 [SOURCE_DIR] [--upstream]"
+      echo "Pakai: $0 [SOURCE_DIR] [--lineage]"
       echo "  SOURCE_DIR  folder source tree (default: \$HOME/LineageOS)"
-      echo "  --upstream  jalur lineage (patches MisterZtr/LineageOS_gsi)"
+      echo "  --lineage  jalur lineage (patches/lineage kurasi)"
       exit 0 ;;
     *) SOURCE_DIR="$arg" ;;
   esac
 done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ "$UPSTREAM" -eq 1 ]; then
+if [ "$LINEAGE" -eq 1 ]; then
   MANIFEST_SRC="$SCRIPT_DIR/manifest-lineage.xml"
 else
   MANIFEST_SRC="$SCRIPT_DIR/manifest.xml"
@@ -94,15 +94,9 @@ repo sync --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j"
 
 # 5. Terapkan patches
 echo "--- terapkan patches ---"
-if [ "$UPSTREAM" -eq 1 ]; then
-  # Jalur lineage: HANYA patches upstream, jangan campur patches/ repo ini.
-  if [ ! -d "LineageOS_gsi/.git" ]; then
-    git clone https://github.com/MisterZtr/LineageOS_gsi.git LineageOS_gsi -b lineage-23.2 --depth 1
-  else
-    git -C LineageOS_gsi fetch origin lineage-23.2 --depth 1
-    git -C LineageOS_gsi checkout -f origin/lineage-23.2
-  fi
-  bash LineageOS_gsi/patches/apply-patches.sh .
+if [ "$LINEAGE" -eq 1 ]; then
+  # Jalur lineage: HANYA patches/lineage kurasi, jangan campur patches treble.
+  bash "$SCRIPT_DIR/patches/apply-patches.sh" --lineage
 elif [ -f "$SCRIPT_DIR/patches/apply-patches.sh" ]; then
   # setup.sh dijalankan dari checkout repo ini di luar source tree:
   # salin patches lokal ke dalam source tree
@@ -111,19 +105,14 @@ elif [ -f "$SCRIPT_DIR/patches/apply-patches.sh" ]; then
   cp -f "$SCRIPT_DIR/manifest.xml" LineageOS_gsi/ 2>/dev/null || true
   bash LineageOS_gsi/patches/apply-patches.sh .
 else
-  echo "Repo ini belum berisi patches/. Mengambil patches upstream (MisterZtr/LineageOS_gsi) sebagai fallback..."
-  if [ ! -d "LineageOS_gsi/.git" ]; then
-    git clone https://github.com/MisterZtr/LineageOS_gsi.git LineageOS_gsi -b lineage-23.2 --depth 1
-  else
-    git -C LineageOS_gsi fetch origin lineage-23.2 --depth 1
-    git -C LineageOS_gsi checkout -f origin/lineage-23.2
-  fi
-  bash LineageOS_gsi/patches/apply-patches.sh .
+  echo "ERROR: patches/apply-patches.sh tidak ditemukan di $SCRIPT_DIR." >&2
+  echo "Clone repo ini lengkap (bukan partial/sparse tanpa patches/)." >&2
+  exit 1
 fi
 
 # 6. Generate definisi product TrebleDroid (hanya jalur treble).
-# Jalur upstream dilewati: definisi product lineage_* datang dari patches.
-if [ "$UPSTREAM" -eq 0 ]; then
+# Jalur lineage dilewati: definisi product lineage_* datang dari patches.
+if [ "$LINEAGE" -eq 0 ]; then
   echo "--- generate treble products ---"
   (cd device/phh/treble && bash generate.sh)
   ls device/phh/treble/treble_arm64_bvN.mk device/phh/treble/AndroidProducts.mk
@@ -131,7 +120,7 @@ fi
 
 echo ""
 echo "=== Setup selesai ==="
-if [ "$UPSTREAM" -eq 1 ]; then
+if [ "$LINEAGE" -eq 1 ]; then
   echo "Lanjut ke build Lineage, contoh (VANILLA ext4):"
   echo "  cd $SOURCE_DIR"
   echo "  . build/envsetup.sh"
