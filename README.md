@@ -44,11 +44,29 @@ repo sync --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$
 bash LineageOS_gsi/patches/apply-patches.sh .
 ```
 
+### Setup ccache (once, persists via ~/.bashrc)
+```
+export USE_CCACHE=1
+export CCACHE_EXEC=$(which ccache)
+export CCACHE_MAXSIZE=50G
+ccache -M 50G -F 0
+```
+Verify with `ccache -s`. Do not `make clean` between rebuilds so `out/` stays incremental.
+
 ### BUILD
 
 ```
 . build/envsetup.sh
 ccache -M 50G -F 0
 breakfast lineage_arm64_bvN4-bp4a-userdebug
+make systemimage -j$(nproc --all)
+```
+
+
+
+### fix patch (rebuild)
+```
+repo sync LineageOS_gsi
+bash LineageOS_gsi/patches/apply-patches.sh .
 make systemimage -j$(nproc --all)
 ```
