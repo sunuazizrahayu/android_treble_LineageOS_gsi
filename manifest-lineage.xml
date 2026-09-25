@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Local manifest untuk LineageOS 23.2 (Android 16) TrebleDroid GSI
      jalur LINEAGE (dengan patches upstream MisterZtr/LineageOS_gsi).
-     Cara pakai: ./setup.sh [SOURCE_DIR] --upstream
+     Cara pakai: setup.sh dengan flag upstream (lihat README bagian 4).
      (atau salin file ini ke .repo/local_manifests/manifest.xml).
      PENTING: jangan gabungkan dengan patches/ repo ini (treble-only) -
      kedua set menyelesaikan masalah yang sama dengan cara berlawanan
