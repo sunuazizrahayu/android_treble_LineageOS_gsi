@@ -22,8 +22,11 @@ PATCHES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Ambil subject patch persis seperti yang dicatat git am (satu baris).
 # Syarat: Subject di file patch harus SATU BARIS (tanpa continuation).
+# Mendukung varian prefix: [PATCH], [PATCH 02/10], [PATCH v2], dsb.
+# (git am membuang bagian [...] itu, jadi harus dibuang di sini juga
+# agar cocok dengan `git log --format=%s`.)
 patch_subject() {
-    sed -n 's/^Subject: \[PATCH\] *//p' "$1" | head -1
+    sed -n 's/^Subject: \[PATCH[^]]*\] *//p' "$1" | head -1
 }
 
 # True bila commit dengan subject tersebut sudah ada di repo ini.
