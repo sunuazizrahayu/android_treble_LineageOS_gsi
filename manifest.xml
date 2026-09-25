@@ -24,4 +24,9 @@
     <!-- Wajib: prebuilt VNDK Android 9. Tanpa ini lunch gagal di
          board_config.mk ("VNDK version 28 not found") -->
     <project path="prebuilts/vndk/v28" remote="github" name="naz664/prebuilts_vndk_v28" revision="master" />
+
+    <!-- Wajib: prebuilt VNDK Android 10 dari AOSP (di-pin ke revisi tertentu
+         agar unduhan kecil). Tanpa ini lunch gagal di board_config.mk
+         ("VNDK version 29 not found") -->
+    <project path="prebuilts/vndk/v29" remote="aosp" name="platform/prebuilts/vndk/v29" clone-depth="1" revision="bef5d37dda9360940964f097d612c8032e140961" />
 </manifest>

@@ -8,7 +8,7 @@ Unofficial **LineageOS 23.2 GSI (Generic System Image, Android 16)** berbasis Tr
 
 | File | Fungsi |
 |---|---|
-| `manifest.xml` | Local manifest **minimal** TrebleDroid: `device/phh/treble`, `vendor/interfaces`, `hardware/oplus`, `vendor/hardware_overlay`, prebuilt VNDK v28. Disalin ke `.repo/local_manifests/` saat setup. Entri tambahan (GApps, VNDK v29/v30, dll) lihat bagian "Menambah entri manifest (opsional)". |
+| `manifest.xml` | Local manifest **minimal** TrebleDroid: `device/phh/treble`, `vendor/interfaces`, `hardware/oplus`, `vendor/hardware_overlay`, prebuilt VNDK v28/v29. Disalin ke `.repo/local_manifests/` saat setup. Entri tambahan (GApps, VNDK v30, dll) lihat bagian "Menambah entri manifest (opsional)". |
 | `setup.sh` | Otomatisasi: `repo init` → pasang manifest → `repo sync` → terapkan patches. |
 | `build.sh` | Build GSI per varian (vanilla/gapps × erofs/ext4). |
 | `patches/` | (Opsional, bila ditambahkan nanti) patches lokal + `apply-patches.sh`. Selama belum ada, `setup.sh` memakai patches upstream `MisterZtr/LineageOS_gsi` sebagai fallback. |
@@ -95,6 +95,14 @@ repo sync --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$
 # atau fallback upstream bila repo ini belum berisi patches/):
 git clone https://github.com/MisterZtr/LineageOS_gsi.git LineageOS_gsi -b lineage-23.2 --depth 1
 bash LineageOS_gsi/patches/apply-patches.sh .
+
+# Generate definisi product TrebleDroid (WAJIB — jangan dilewati).
+# AndroidProducts.mk + treble_*.mk tidak ikut tersync dari git,
+# jadi harus dibuat lokal. Tanpa ini lunch gagal dengan
+# "Don't have a product spec". Ulangi setiap habis repo sync.
+# Pakai subshell (...) agar tidak perlu cd manual.
+(cd device/phh/treble && bash generate.sh)
+ls device/phh/treble/treble_arm64_bvN.mk device/phh/treble/AndroidProducts.mk   # pastikan keduanya ada
 ```
 
 ## 3a. Menambah entri manifest (opsional)
@@ -122,8 +130,7 @@ lalu `repo sync` ulang:
     <project path="vendor/lptools" remote="github" name="phhusson/vendor_lptools" revision="master" />
     <project path="vendor/magisk" remote="github" name="phhusson/vendor_magisk" revision="android-10.0" />
 
-    <!-- Prebuilt VNDK Android 10/11 untuk kompatibilitas vendor lama -->
-    <project path="prebuilts/vndk/v29" remote="aosp" name="platform/prebuilts/vndk/v29" clone-depth="1" revision="bef5d37dda9360940964f097d612c8032e140961" />
+    <!-- Prebuilt VNDK Android 11 untuk kompatibilitas vendor lama -->
     <project path="prebuilts/vndk/v30" remote="aosp" name="platform/prebuilts/vndk/v30" clone-depth="1" revision="5f9884aa352825291757dfd6694b874ad8c1805e" />
 </manifest>
 ```
@@ -135,6 +142,8 @@ Jalankan dari **root source tree** (`~/LineageOS`):
 ```bash
 cd ~/LineageOS
 ```
+
+> Prasyarat: langkah generate di bagian 3 sudah dijalankan (cek `ls device/phh/treble/treble_arm64_bvN.mk`). Kalau file itu tidak ada, lunch pasti gagal — jalankan `(cd device/phh/treble && bash generate.sh)` dulu.
 
 | Varian | Filesystem | Perintah |
 |---|---|---|
@@ -180,11 +189,13 @@ cd out/target/product/tdgsi_arm64_ab
 cd ~/LineageOS
 repo sync --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all)
 bash LineageOS_gsi/patches/apply-patches.sh .   # ulangi setelah sync bila ada update
+(cd device/phh/treble && bash generate.sh)   # wajib ulang setelah sync
 bash LineageOS_gsi/build.sh --variant vanilla --fs erofs
 ```
 
 ## Troubleshooting
 
+- **`Don't have a product spec for ...` saat lunch** → `generate.sh` belum dijalankan, atau dijalankan dari folder yang salah (script ini menulis file ke **folder aktif**, jadi `bash device/phh/treble/generate.sh` dari root justru bikin file nyasar). Selalu pakai bentuk subshell dari root source tree: `(cd device/phh/treble && bash generate.sh)`, pastikan `treble_arm64_bvN.mk` muncul, lalu lunch ulang di terminal fresh.
 - **`repo: command not found`** → pasang tool `repo` seperti di bagian dependensi, pastikan `~/.bin` ada di `PATH`.
 - **Gagal apply patch / konflik** → patch harus diterapkan manual satu per satu (`git apply --check`, `git am`), biasanya karena source upstream berubah. Sinkronkan ulang patches dengan upstream `MisterZtr/LineageOS_gsi`.
 - **Build OOM / killed** → kurangi jobs (`--jobs 4`), tambah RAM/swap.
