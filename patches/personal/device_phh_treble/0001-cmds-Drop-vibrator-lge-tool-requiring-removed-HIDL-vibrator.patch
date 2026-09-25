@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: sunuazizrahayu <sunuazizrahayu@users.noreply.github.com>
+Date: Fri, 26 Sep 2026 00:00:00 +0700
+Subject: [PATCH] cmds: Drop vibrator-lge tool requiring removed HIDL vibrator
+
+The vibrator-lge helper links against vendor.lge.hardware.vibrator@1.0,
+whose android.hardware.vibrator@1.0 dependency no longer exists in this
+tree (migrated to AIDL). The tool is not part of any product package,
+so drop its definition instead of carrying the stale HAL.
+---
+ cmds/Android.bp | 12 ------------
+ 1 file changed, 12 deletions(-)
+
+diff --git a/cmds/Android.bp b/cmds/Android.bp
+--- a/cmds/Android.bp
++++ b/cmds/Android.bp
+@@ -36,19 +36,7 @@
+ 	],
+ 	host_supported: true,
+ }
+ 
+-cc_binary {
+-	name: "vibrator-lge",
+-	srcs: [
+-		"vibrator-lge.cpp",
+-	],
+-	shared_libs: [
+-		"vendor.lge.hardware.vibrator@1.0",
+-		"libutils",
+-		"libhidlbase",
+-	],
+-}
+-
+ cc_binary {
+ 	name: "mtk-sms-fwk-ready",
+ 	srcs: [
+-- 
+2.54.0
+

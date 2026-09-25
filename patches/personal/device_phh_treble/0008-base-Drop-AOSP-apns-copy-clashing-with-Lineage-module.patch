@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: sunuazizrahayu <sunuazizrahayu@users.noreply.github.com>
+Date: Fri, 26 Sep 2026 00:00:00 +0700
+Subject: [PATCH] base: Drop AOSP apns copy clashing with Lineage module
+
+Lineage's apns-conf.xml Soong module (vendor/apn, actively maintained)
+already installs system/product/etc/apns-conf.xml, so drop the generic
+AOSP copy inherited from aosp_product.mk that kati rejects as
+"overriding commands".
+---
+ base.mk | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/base.mk b/base.mk
+index 8e8f87a..0dcb625 100644
+--- a/base.mk
++++ b/base.mk
+@@ -55,6 +55,10 @@ PRODUCT_COPY_FILES += \
+ # image rules that would clash with them (kati "overriding commands").
+ LOCAL_CHARGER_NO_UI := true
+ 
++# Lineage apns-conf.xml Soong module already provides this file; drop
++# the AOSP copy that would clash with it (kati "overriding commands").
++PRODUCT_COPY_FILES -= device/sample/etc/apns-full-conf.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/apns-conf.xml
++
+ # USB Audio
+ PRODUCT_COPY_FILES += \
+     frameworks/av/services/audiopolicy/config/usb_audio_policy_configuration.xml:system/etc/usb_audio_policy_configuration.xml \
+-- 
+2.54.0
+

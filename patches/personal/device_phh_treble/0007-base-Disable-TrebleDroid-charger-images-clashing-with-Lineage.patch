@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: sunuazizrahayu <sunuazizrahayu@users.noreply.github.com>
+Date: Fri, 26 Sep 2026 00:00:00 +0700
+Subject: [PATCH] base: Disable TrebleDroid charger images clashing with Lineage
+
+device/phh/treble/charger/Android.mk registers prebuilt charger images
+for the same paths covered by Lineage's lineage_charger_* Soong modules,
+so kati aborts with "overriding commands". The file honors
+LOCAL_CHARGER_NO_UI, so set it here (product config is read before
+Android.mk files are evaluated).
+---
+ base.mk | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/base.mk b/base.mk
+index fc23715..8e8f87a 100644
+--- a/base.mk
++++ b/base.mk
+@@ -51,6 +51,10 @@ PRODUCT_COPY_FILES += \
+ PRODUCT_COPY_FILES += \
+     device/phh/treble/charger.rc:system/etc/init/charger.rc
+ 
++# Lineage charger images cover these paths; disable TrebleDroid prebuilt
++# image rules that would clash with them (kati "overriding commands").
++LOCAL_CHARGER_NO_UI := true
++
+ # USB Audio
+ PRODUCT_COPY_FILES += \
+     frameworks/av/services/audiopolicy/config/usb_audio_policy_configuration.xml:system/etc/usb_audio_policy_configuration.xml \
+-- 
+2.54.0
+

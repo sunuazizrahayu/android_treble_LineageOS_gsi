@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: sunuazizrahayu <sunuazizrahayu@users.noreply.github.com>
+Date: Fri, 26 Sep 2026 00:00:00 +0700
+Subject: [PATCH] board: Include BoardConfigSoong.mk to export kernel vars
+
+The vendor/lineage kernel header generator modules need
+$(KERNEL_BUILD_OUT_PREFIX) and $(TARGET_KERNEL_PLATFORM_TARGET)
+visible to Soong. Visibility comes from the lineageVarsPlugin
+namespace, populated from EXPORT_TO_SOONG in
+vendor/lineage/config/BoardConfigSoong.mk - which is normally pulled
+in via BoardConfigLineage.mk on official device boards only.
+Treble boards never include it, so include it directly here.
+---
+ board-base.mk | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/board-base.mk b/board-base.mk
+--- a/board-base.mk
++++ b/board-base.mk
+@@ -8,5 +8,12 @@ TARGET_KERNEL_PLATFORM_TARGET :=
+ 
++include vendor/lineage/config/BoardConfigSoong.mk
++
++# Export the kernel vars above (and the BoardConfigKernel.mk family) to
++# the lineageVarsPlugin Soong namespace, exactly like Lineage device
++# boards do via BoardConfigLineage.mk. Without this, Soong rejects the
++# vendor/lineage kernel header generator modules ("unknown variable").
++
+ TARGET_SYSTEM_PROP := device/phh/treble/system.prop $(TARGET_SYSTEM_PROP)
+ 
+ # Bluetooth
+ BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/phh/treble/bluetooth/include

@@ -8,10 +8,10 @@ Unofficial **LineageOS 23.2 GSI (Generic System Image, Android 16)** berbasis Tr
 
 | File | Fungsi |
 |---|---|
-| `manifest.xml` | Local manifest **minimal** TrebleDroid: `device/phh/treble`, `vendor/interfaces`, `hardware/oplus`, `vendor/hardware_overlay`, prebuilt VNDK v28/v29. Disalin ke `.repo/local_manifests/` saat setup. Entri tambahan (GApps, VNDK v30, dll) lihat bagian "Menambah entri manifest (opsional)". |
+| `manifest.xml` | Local manifest **minimal** TrebleDroid: `device/phh/treble`, `vendor/interfaces`, `hardware/oplus`, `vendor/hardware_overlay`, prebuilt VNDK v28/v29. Disalin ke `.repo/local_manifests/` saat setup. Contoh entri GApps ada di komentar atas file-nya. |
 | `setup.sh` | Otomatisasi: `repo init` → pasang manifest → `repo sync` → terapkan patches. |
 | `build.sh` | Build GSI per varian (vanilla/gapps × erofs/ext4). |
-| `patches/` | (Opsional, bila ditambahkan nanti) patches lokal + `apply-patches.sh`. Selama belum ada, `setup.sh` memakai patches upstream `MisterZtr/LineageOS_gsi` sebagai fallback. |
+| `patches/` | Patches lokal + `apply-patches.sh` idempotent untuk build treble tanpa patch upstream. |
 
 ## Kebutuhan mesin build
 
@@ -59,91 +59,56 @@ sudo update-alternatives --config java   # pilih java-17
 java -version
 ```
 
-## 2. Setup otomatis (disarankan)
+## 2. Setup
 
 ```bash
-git clone https://github.com/sunuazizrahayu/android_treble_LineageOS_gsi.git -b 23.2
-cd android_treble_LineageOS_gsi
-chmod +x setup.sh build.sh
-./setup.sh ~/LineageOS     # argumen opsional, default: ~/LineageOS
-```
+# clone project
+git clone https://github.com/sunuazizrahayu/android_treble_LineageOS_gsi.git LineageOS_gsi -b 23.2
 
-`setup.sh` melakukan:
+# goto workdir (folder ini sekaligus jadi root source tree)
+cd LineageOS_gsi
 
-1. `repo init -u https://github.com/LineageOS/android.git -b lineage-23.2 --git-lfs`
-2. Menyalin `manifest.xml` repo ini → `<source>/.repo/local_manifests/manifest.xml`
-3. `repo sync --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune`
-4. Menerapkan patches (`patches/apply-patches.sh` bila repo ini sudah berisi `patches/`, jika belum memakai fallback upstream `MisterZtr/LineageOS_gsi:lineage-23.2`)
-
-## 3. Setup manual (tanpa script)
-
-```bash
-mkdir LineageOS && cd LineageOS
-
-# Init source LineageOS 23.2
+# init
 repo init -u https://github.com/LineageOS/android.git -b lineage-23.2 --git-lfs
 
-# Pasang local manifest dari repo ini
+# set manifest
 mkdir -p .repo/local_manifests
-curl -L https://raw.githubusercontent.com/sunuazizrahayu/android_treble_LineageOS_gsi/23.2/manifest.xml \
-  -o .repo/local_manifests/manifest.xml
+curl -L https://raw.githubusercontent.com/sunuazizrahayu/android_treble_LineageOS_gsi/23.2/manifest.xml -o .repo/local_manifests/manifest.xml
 
-# Sync (lama, bisa berjam-jam)
+# sync repo (lama, bisa berjam-jam)
 repo sync --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all)
 
-# Terapkan patches (salin manual dari checkout repo ini,
-# atau fallback upstream bila repo ini belum berisi patches/):
-git clone https://github.com/MisterZtr/LineageOS_gsi.git LineageOS_gsi -b lineage-23.2 --depth 1
-bash LineageOS_gsi/patches/apply-patches.sh .
-
-# Generate definisi product TrebleDroid (WAJIB — jangan dilewati).
-# AndroidProducts.mk + treble_*.mk tidak ikut tersync dari git,
-# jadi harus dibuat lokal. Tanpa ini lunch gagal dengan
-# "Don't have a product spec". Ulangi setiap habis repo sync.
-# Pakai subshell (...) agar tidak perlu cd manual.
-(cd device/phh/treble && bash generate.sh)
-ls device/phh/treble/treble_arm64_bvN.mk device/phh/treble/AndroidProducts.mk   # pastikan keduanya ada
+# apply patch
+bash patches/apply-patches.sh .
 ```
 
-## 3a. Menambah entri manifest (opsional)
+Catatan:
+- Kalau `apply-patches.sh` gagal dengan error git identity, set dulu:
+  `git config --global user.name "nama"` dan `git config --global user.email "email"`, lalu ulangi apply-nya.
+- Alternatif otomatis untuk semua langkah di atas: `./setup.sh ~/LineageOS` (lihat isi `setup.sh`).
 
-`manifest.xml` bawaan repo ini sengaja minimal (cukup untuk build vanilla).
-Tambahkan blok berikut ke `.repo/local_manifests/manifest.xml` sesuai kebutuhan,
-lalu `repo sync` ulang:
-
-```xml
-<manifest>
-    <!-- ... isi minimal ... -->
-
-    <!-- Wajib untuk varian GAPPS (bgN/bgNE) -->
-    <remote name="gitlab" fetch="https://gitlab.com/" />
-    <project path="vendor/gapps" remote="gitlab" name="MindTheGapps/vendor_gapps" revision="baklava" />
-
-    <!-- Panel pengaturan Treble (GSI tetap boot tanpanya) -->
-    <project path="treble_app" remote="github" name="TrebleDroid/treble_app" revision="master" />
-
-    <!-- Sinyal di sebagian device Qualcomm -->
-    <project path="packages/apps/QcRilAm" remote="github" name="AndyCGYan/android_packages_apps_QcRilAm" revision="master" />
-
-    <!-- Perkakas phh -->
-    <project path="vendor/vndk-tests" remote="github" name="phhusson/vendor_vndk-tests" revision="master" />
-    <project path="vendor/lptools" remote="github" name="phhusson/vendor_lptools" revision="master" />
-    <project path="vendor/magisk" remote="github" name="phhusson/vendor_magisk" revision="android-10.0" />
-
-    <!-- Prebuilt VNDK Android 11 untuk kompatibilitas vendor lama -->
-    <project path="prebuilts/vndk/v30" remote="aosp" name="platform/prebuilts/vndk/v30" clone-depth="1" revision="5f9884aa352825291757dfd6694b874ad8c1805e" />
-</manifest>
-```
-
-## 4. Build
-
-Jalankan dari **root source tree** (`~/LineageOS`):
+## 3. Build
 
 ```bash
-cd ~/LineageOS
+# generate definisi product (wajib, file-nya tidak ikut tersync dari git)
+(cd device/phh/treble && bash generate.sh)
+
+# load env + lunch (untuk target treble pakai lunch, bukan breakfast)
+. build/envsetup.sh
+lunch treble_arm64_bvN-bp4a-userdebug
+
+# build (flag dexpreopt wajib untuk sekarang, kalau tidak gagal di tahap akhir)
+make systemimage -j$(nproc --all) DISABLE_DEXPREOPT_CHECK=true
 ```
 
-> Prasyarat: langkah generate di bagian 3 sudah dijalankan (cek `ls device/phh/treble/treble_arm64_bvN.mk`). Kalau file itu tidak ada, lunch pasti gagal — jalankan `(cd device/phh/treble && bash generate.sh)` dulu.
+Hasil build:
+
+```text
+out/target/product/tdgsi_arm64_ab/system.img
+```
+
+> Varian di bawah ini butuh patches upstream (MisterZtr) yang menciptakan
+> target `lineage_*` — belum dipakai di alur ini, dicatat untuk nanti:
 
 | Varian | Filesystem | Perintah |
 |---|---|---|
@@ -152,45 +117,30 @@ cd ~/LineageOS
 | GAPPS | EROFS | `bash LineageOS_gsi/build.sh --variant gapps --fs erofs` |
 | GAPPS | ext4 | `bash LineageOS_gsi/build.sh --variant gapps --fs ext4` |
 
-Setara manual (contoh VANILLA EROFS):
-
-```bash
-. build/envsetup.sh
-ccache -M 50G -F 0
-breakfast lineage_arm64_bvNE-bp4a-userdebug
-make systemimage -j$(nproc --all)
-```
-
-Nama lunch target lengkap:
+Nama lunch target lengkap (butuh patches upstream):
 
 - VANILLA EROFS: `lineage_arm64_bvNE-bp4a-userdebug`
 - VANILLA ext4: `lineage_arm64_bvN4-bp4a-userdebug`
 - GAPPS EROFS: `lineage_arm64_bgNE-bp4a-userdebug`
 - GAPPS ext4: `lineage_arm64_bgN4-bp4a-userdebug`
 
-Hasil build:
-
-```text
-out/target/product/tdgsi_arm64_ab/system.img
-```
-
 `bvN` = vanilla (tanpa GApps), `bgN` = dengan GApps (MindTheGapps). EROFS butuh kernel 5.4+ di perangkat; bila ragu/bootloop, pakai varian ext4 (read-write penuh).
 
-## 5. Kompres hasil (opsional)
+## 4. Kompres hasil (opsional)
 
 ```bash
 cd out/target/product/tdgsi_arm64_ab
 7z a system.img.xz system.img
 ```
 
-## 6. Sync ulang / rebuild
+## 5. Sync ulang / rebuild
 
 ```bash
-cd ~/LineageOS
+cd ~/LineageOS_gsi
 repo sync --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all)
-bash LineageOS_gsi/patches/apply-patches.sh .   # ulangi setelah sync bila ada update
+bash patches/apply-patches.sh .   # ulangi setelah sync bila ada update
 (cd device/phh/treble && bash generate.sh)   # wajib ulang setelah sync
-bash LineageOS_gsi/build.sh --variant vanilla --fs erofs
+make systemimage -j$(nproc --all) DISABLE_DEXPREOPT_CHECK=true
 ```
 
 ## Troubleshooting

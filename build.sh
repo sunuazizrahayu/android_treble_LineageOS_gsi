@@ -67,7 +67,7 @@ fi
 if [ "$VARIANT" = "gapps" ] && [ ! -d "vendor/gapps" ]; then
   echo "ERROR: vendor/gapps belum tersync (manifest minimal hanya untuk vanilla)." >&2
   echo "Tambahkan entri vendor/gapps ke .repo/local_manifests/manifest.xml lalu repo sync." >&2
-  echo "Lihat README.md bagian 'Menambah entri manifest (opsional)'." >&2
+  echo "(contoh entri ada di komentar atas manifest.xml repo ini)." >&2
   exit 1
 fi
 

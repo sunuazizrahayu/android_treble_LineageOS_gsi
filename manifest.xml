@@ -3,8 +3,9 @@
      Cara pakai: salin file ini ke .repo/local_manifests/manifest.xml
      di dalam source tree, lalu jalankan `repo sync`.
      Hanya berisi project wajib agar GSI vanilla bisa ke-build dan boot.
-     Butuh GApps / dependensi lain? Lihat README.md bagian
-     "Menambah entri manifest (opsional)".
+     Butuh varian GAPPS? Tambahkan entri berikut lalu sync ulang:
+         <remote name="gitlab" fetch="https://gitlab.com/" />
+         <project path="vendor/gapps" remote="gitlab" name="MindTheGapps/vendor_gapps" revision="baklava" />
      Lihat setup.sh / README.md untuk alur lengkap. -->
 <manifest>
     <!-- <remote name="github" fetch="https://github.com/" /> -->
@@ -29,4 +30,9 @@
          agar unduhan kecil). Tanpa ini lunch gagal di board_config.mk
          ("VNDK version 29 not found") -->
     <project path="prebuilts/vndk/v29" remote="aosp" name="platform/prebuilts/vndk/v29" clone-depth="1" revision="bef5d37dda9360940964f097d612c8032e140961" />
+
+    <!-- Buang repo compat Lineage: modul prebuilt protobuf-nya bernama
+         persis sama dengan prebuilt AOSP (prebuilts/misc) sehingga Soong
+         gagal ("already defined"). Tidak dibutuhkan untuk build treble. -->
+    <remove-project name="LineageOS/android_hardware_lineage_compat" />
 </manifest>

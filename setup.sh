@@ -15,6 +15,7 @@
 #   4. repo sync
 #   5. Terapkan patches (patches/apply-patches.sh bila ada,
 #      fallback ke MisterZtr/LineageOS_gsi upstream)
+#   6. Generate definisi product TrebleDroid (device/phh/treble/generate.sh)
 
 set -euo pipefail
 
@@ -89,6 +90,12 @@ else
   fi
   bash LineageOS_gsi/patches/apply-patches.sh .
 fi
+
+# 6. Generate definisi product TrebleDroid (wajib agar lunch mengenal
+# target treble_*. AndroidProducts.mk tidak ikut tersync dari git).
+echo "--- generate treble products ---"
+(cd device/phh/treble && bash generate.sh)
+ls device/phh/treble/treble_arm64_bvN.mk device/phh/treble/AndroidProducts.mk
 
 echo ""
 echo "=== Setup selesai ==="

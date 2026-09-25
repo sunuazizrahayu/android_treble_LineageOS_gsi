@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: sunuazizrahayu <sunuazizrahayu@users.noreply.github.com>
+Date: Fri, 26 Sep 2026 00:00:00 +0700
+Subject: [PATCH] base: Behave like a Lineage GSI to keep aosp_system_image
+ disabled
+
+On Lineage trees the AOSP aosp_system_image module cannot be built:
+its app deps (Calendar, Gallery2, ...) were removed from Lineage, so
+Soong fails with "depends on undefined module". Lineage GSI products
+avoid this because BUILDING_LINEAGE_GSI disables that module (see
+gsi_release.mk and android_soong_config_vars.mk). Set the same flag
+for Treble products; nothing else consumes it.
+---
+ base.mk | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/base.mk b/base.mk
+--- a/base.mk
++++ b/base.mk
+@@ -238,8 +238,14 @@ include build/make/target/product/gsi_release.mk
+ include build/make/target/product/gsi_release.mk
+ 
+ # Protect deskclock from power save
+ PRODUCT_COPY_FILES += \
+     device/phh/treble/files/com.android.deskclock_whitelist.xml:system/etc/sysconfig/com.android.deskclock_whitelist.xml
++
++# Treble GSI on Lineage trees: behave like a Lineage GSI so that the
++# AOSP aosp_system_image (whose app deps like Calendar were removed
++# from Lineage) stays disabled. See BUILDING_LINEAGE_GSI.
++BUILDING_LINEAGE_GSI := true
++
+ 
+ PRODUCT_PACKAGES += \
+     evgrab \
+-- 
+2.54.0
+

@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: sunuazizrahayu <sunuazizrahayu@users.noreply.github.com>
+Date: Fri, 26 Sep 2026 00:00:00 +0700
+Subject: [PATCH] base: Drop product_charger_res_images clashing with Lineage
+
+Both product_charger_res_images (TrebleDroid) and lineage_charger_*
+(Lineage, Soong) install charger images to the same paths
+(system/product and vendor), so kati aborts with "overriding
+commands". Lineage's modules already cover all the same files,
+so drop the TrebleDroid package.
+---
+ base.mk | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/base.mk b/base.mk
+index 7421b3e..fc23715 100644
+--- a/base.mk
++++ b/base.mk
+@@ -51,10 +51,6 @@ PRODUCT_COPY_FILES += \
+ PRODUCT_COPY_FILES += \
+     device/phh/treble/charger.rc:system/etc/init/charger.rc
+ 
+-# Charger image
+-PRODUCT_PACKAGES += \
+-    product_charger_res_images
+-
+ # USB Audio
+ PRODUCT_COPY_FILES += \
+     frameworks/av/services/audiopolicy/config/usb_audio_policy_configuration.xml:system/etc/usb_audio_policy_configuration.xml \
+-- 
+2.54.0
+
