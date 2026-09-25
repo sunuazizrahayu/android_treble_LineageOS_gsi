@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Sunu Aziz Rahayu <sunuazizrahayu@users.noreply.github.com>
+Date: Fri, 26 Sep 2026 00:00:00 +0700
+Subject: [PATCH] build: prefer Etar over Calendar in GSI system image
+
+AOSP Calendar sudah dihapus di Lineage 23.2 (packages/apps/Calendar
+tidak ada), sehingga Soong gagal:
+
+  "aosp_system_image" depends on undefined module "Calendar"
+
+Lineage memakai Etar sebagai penggantinya (overrides: ["Calendar"]),
+jadi tukar dependensinya ke Etar.
+
+---
+ target/product/gsi/Android.bp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/target/product/gsi/Android.bp b/target/product/gsi/Android.bp
+index 0000000..0000000 100644
+--- a/target/product/gsi/Android.bp
++++ b/target/product/gsi/Android.bp
+@@ -187,7 +187,7 @@ android_system_image {
+
+         // handheld_product
+         "AvatarPicker",
+-        "Calendar",
++        "Etar",
+         "Contacts",
+         "DeskClock",
+         "Gallery2",
+--
+2.54.0
