@@ -1,0 +1,86 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Sunu Aziz Rahayu <sunuazizrahayu@users.noreply.github.com>
+Date: Fri, 26 Sep 2026 00:00:00 +0700
+Subject: [PATCH] treble: GSI build fixes for Lineage 23.2
+
+Kumpulan fix build GSI (vanilla/EXT4: lineage_arm64_bvN4-bp4a) agar
+lolos Soong/kati di source Lineage 23.2 terbaru:
+
+- cmds: drop vibrator-lge yang depend ke vendor.lge.hardware.vibrator
+  @1.0 (modul android.hardware.vibrator@1.0 sudah tidak ada).
+- base: drop vr_hwc dan healthd yang sudah tidak ada di Android 16.
+- base: drop product_charger_res_images yang duplikat dengan charger
+  treble.
+- bvN4: WITH_LINEAGE_CHARGER := false di puncak file product (harus
+  sebelum semua inherit) agar lineage_charger_animation tidak
+  bertabrakan dengan charger treble.
+
+---
+ base.mk | 8 +-------
+ cmds/Android.bp | 13 -------------
+ lineage_arm64_bvN4.mk | 3 +++
+ 3 files changed, 4 insertions(+), 20 deletions(-)
+
+diff --git a/base.mk b/base.mk
+index 0000000..0000000 100644
+--- a/base.mk
++++ b/base.mk
+@@ -50,10 +50,6 @@ PRODUCT_COPY_FILES += \
+ PRODUCT_COPY_FILES += \
+     device/phh/treble/charger.rc:system/etc/init/charger.rc
+
+-# Charger image
+-PRODUCT_PACKAGES += \
+-    product_charger_res_images
+-
+ # USB Audio
+ PRODUCT_COPY_FILES += \
+     frameworks/av/services/audiopolicy/config/usb_audio_policy_configuration.xml:system/etc/usb_audio_policy_configuration.xml \
+@@ -199,9 +195,7 @@ PRODUCT_PACKAGES += \
+     android.hardware.biometrics.fingerprint@2.1-service.oplus.compat \
+
+ PRODUCT_PACKAGES += \
+-    vr_hwc \
+-    curl \
+-    healthd \
++    curl
+
+ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+     debug.fdsan=warn_once \
+diff --git a/cmds/Android.bp b/cmds/Android.bp
+index 0000000..0000000 100644
+--- a/cmds/Android.bp
++++ b/cmds/Android.bp
+@@ -36,19 +36,7 @@ cc_binary {
+ 	],
+ 	host_supported: true,
+ }
+
+-cc_binary {
+-	name: "vibrator-lge",
+-	srcs: [
+-		"vibrator-lge.cpp",
+-	],
+-	shared_libs: [
+-		"vendor.lge.hardware.vibrator@1.0",
+-		"libutils",
+-		"libhidlbase",
+-	],
+-}
+-
+ cc_binary {
+ 	name: "mtk-sms-fwk-ready",
+ 	srcs: [
+diff --git a/lineage_arm64_bvN4.mk b/lineage_arm64_bvN4.mk
+index 0000000..0000000 100644
+--- a/lineage_arm64_bvN4.mk
++++ b/lineage_arm64_bvN4.mk
+@@ -1,3 +1,6 @@
++# Treble provides its own charger images; must precede all inherits
++WITH_LINEAGE_CHARGER := false
++
+ TARGET_GAPPS_ARCH := arm64
+ include build/make/target/product/aosp_arm64.mk
+ $(call inherit-product, device/phh/treble/base.mk)
+--
+2.54.0
