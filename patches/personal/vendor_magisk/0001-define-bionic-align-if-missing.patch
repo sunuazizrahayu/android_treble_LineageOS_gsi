@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Sunu Aziz Rahayu <sunuazizrahayu@users.noreply.github.com>
+Date: Fri, 26 Sep 2026 00:00:00 +0700
+Subject: [PATCH] magisk: define __BIONIC_ALIGN if missing
+
+Makro itu sudah dihapus dari header bionic Android 16, sehingga
+kompilasi resetprop_phh gagal:
+
+  prop_area.cpp:150:26: error: use of undeclared identifier
+  '__BIONIC_ALIGN'
+
+Definisikan lokal sebagai fallback. (Port dari MisterZtr/
+cawilliamson.)
+---
+ Magisk/native/jni/systemproperties/prop_area.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Magisk/native/jni/systemproperties/prop_area.cpp b/Magisk/native/jni/systemproperties/prop_area.cpp
+index 0000000..0000000 100644
+--- a/Magisk/native/jni/systemproperties/prop_area.cpp
++++ b/Magisk/native/jni/systemproperties/prop_area.cpp
+@@ -37,6 +37,10 @@
+
+ #include <new>
+
++#ifndef __BIONIC_ALIGN
++#define __BIONIC_ALIGN(__value, __alignment) (((__value) + (__alignment) - 1) & ~((__alignment) - 1))
++#endif
++
+ #include <async_safe/log.h>
+
+ #include "system_properties/prop_area.h"
+--
+2.54.0
