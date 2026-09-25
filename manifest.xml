@@ -7,7 +7,7 @@
      "Menambah entri manifest (opsional)".
      Lihat setup.sh / README.md untuk alur lengkap. -->
 <manifest>
-    <remote name="github" fetch="https://github.com/" />
+    <!-- <remote name="github" fetch="https://github.com/" /> -->
 
     <!-- Wajib: device tree GSI + HAL vendor TrebleDroid -->
     <project path="device/phh/treble" remote="github" name="TrebleDroid/device_phh_treble" revision="android-16.0" />
