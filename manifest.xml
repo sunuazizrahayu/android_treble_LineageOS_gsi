@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Local manifest MINIMAL untuk LineageOS 23.2 (Android 16) TrebleDroid GSI.
+<!-- Local manifest untuk LineageOS 23.2 (Android 16) TrebleDroid GSI.
      Cara pakai: salin file ini ke .repo/local_manifests/manifest.xml
      di dalam source tree, lalu jalankan `repo sync`.
-     Hanya berisi project wajib agar GSI vanilla bisa ke-build dan boot.
-     Butuh GApps / kompatibilitas vendor lama? Lihat README.md bagian
+     Berisi semua dependensi TrebleDroid agar GSI vanilla bisa ke-build.
+     Butuh varian GAPPS? Tambahkan vendor/gapps, lihat README.md bagian
      "Menambah entri manifest (opsional)".
      Lihat setup.sh / README.md untuk alur lengkap. -->
 <manifest>
@@ -20,4 +20,22 @@
          device/phh/treble/base.mk (tanpa ini lunch gagal:
          "vendor/hardware_overlay/overlay.mk does not exist") -->
     <project path="vendor/hardware_overlay" remote="github" name="AndroidROMx/vendor_hardware_overlay" revision="main" />
+
+    <!-- Aplikasi pengaturan Treble (panel Treble Settings di Pengaturan) -->
+    <project path="treble_app" remote="github" name="TrebleDroid/treble_app" revision="master" />
+
+    <!-- Perkakas phh (di-refer base.mk untuk varian tertentu) -->
+    <project path="vendor/vndk-tests" remote="github" name="phhusson/vendor_vndk-tests" revision="master" />
+    <project path="vendor/lptools" remote="github" name="phhusson/vendor_lptools" revision="master" />
+    <project path="vendor/magisk" remote="github" name="phhusson/vendor_magisk" revision="android-10.0" />
+
+    <!-- Aplikasi RIL Qualcomm. Tanpa ini build bisa jalan, tapi sinyal
+         seluler di sebagian device Qualcomm bermasalah -->
+    <project path="packages/apps/QcRilAm" remote="github" name="AndyCGYan/android_packages_apps_QcRilAm" revision="master" />
+
+    <!-- Prebuilt VNDK Android 9/10/11. Wajib: board_config.mk gagal
+         ("VNDK version 28 not found") bila v28 tidak tersync -->
+    <project path="prebuilts/vndk/v28" remote="github" name="naz664/prebuilts_vndk_v28" revision="master" />
+    <project path="prebuilts/vndk/v29" remote="aosp" name="platform/prebuilts/vndk/v29" clone-depth="1" revision="bef5d37dda9360940964f097d612c8032e140961" />
+    <project path="prebuilts/vndk/v30" remote="aosp" name="platform/prebuilts/vndk/v30" clone-depth="1" revision="5f9884aa352825291757dfd6694b874ad8c1805e" />
 </manifest>
