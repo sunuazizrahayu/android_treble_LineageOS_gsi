@@ -8,7 +8,7 @@ Unofficial **LineageOS 23.2 GSI (Generic System Image, Android 16)** berbasis Tr
 
 | File | Fungsi |
 |---|---|
-| `manifest.xml` | Local manifest TrebleDroid (device tree, HAL vendor, overlay, treble_app, perkakas phh, VNDK, QcRilAm). Disalin ke `.repo/local_manifests/` saat setup. Entri GApps (opsional, untuk varian gapps) lihat bagian "Menambah entri manifest (opsional)". |
+| `manifest.xml` | Local manifest **minimal** TrebleDroid: `device/phh/treble`, `vendor/interfaces`, `hardware/oplus`, `vendor/hardware_overlay`, prebuilt VNDK v28. Disalin ke `.repo/local_manifests/` saat setup. Entri tambahan (GApps, VNDK v29/v30, dll) lihat bagian "Menambah entri manifest (opsional)". |
 | `setup.sh` | Otomatisasi: `repo init` → pasang manifest → `repo sync` → terapkan patches. |
 | `build.sh` | Build GSI per varian (vanilla/gapps × erofs/ext4). |
 | `patches/` | (Opsional, bila ditambahkan nanti) patches lokal + `apply-patches.sh`. Selama belum ada, `setup.sh` memakai patches upstream `MisterZtr/LineageOS_gsi` sebagai fallback. |
@@ -99,18 +99,32 @@ bash LineageOS_gsi/patches/apply-patches.sh .
 
 ## 3a. Menambah entri manifest (opsional)
 
-`manifest.xml` bawaan repo ini berisi semua dependensi TrebleDroid untuk
-build vanilla. Satu-satunya tambahan opsional adalah GApps untuk varian
-`bgN`/`bgNE` — tambahkan blok berikut ke `.repo/local_manifests/manifest.xml`,
+`manifest.xml` bawaan repo ini sengaja minimal (cukup untuk build vanilla).
+Tambahkan blok berikut ke `.repo/local_manifests/manifest.xml` sesuai kebutuhan,
 lalu `repo sync` ulang:
 
 ```xml
 <manifest>
-    <!-- ... isi bawaan ... -->
+    <!-- ... isi minimal ... -->
 
     <!-- Wajib untuk varian GAPPS (bgN/bgNE) -->
     <remote name="gitlab" fetch="https://gitlab.com/" />
     <project path="vendor/gapps" remote="gitlab" name="MindTheGapps/vendor_gapps" revision="baklava" />
+
+    <!-- Panel pengaturan Treble (GSI tetap boot tanpanya) -->
+    <project path="treble_app" remote="github" name="TrebleDroid/treble_app" revision="master" />
+
+    <!-- Sinyal di sebagian device Qualcomm -->
+    <project path="packages/apps/QcRilAm" remote="github" name="AndyCGYan/android_packages_apps_QcRilAm" revision="master" />
+
+    <!-- Perkakas phh -->
+    <project path="vendor/vndk-tests" remote="github" name="phhusson/vendor_vndk-tests" revision="master" />
+    <project path="vendor/lptools" remote="github" name="phhusson/vendor_lptools" revision="master" />
+    <project path="vendor/magisk" remote="github" name="phhusson/vendor_magisk" revision="android-10.0" />
+
+    <!-- Prebuilt VNDK Android 10/11 untuk kompatibilitas vendor lama -->
+    <project path="prebuilts/vndk/v29" remote="aosp" name="platform/prebuilts/vndk/v29" clone-depth="1" revision="bef5d37dda9360940964f097d612c8032e140961" />
+    <project path="prebuilts/vndk/v30" remote="aosp" name="platform/prebuilts/vndk/v30" clone-depth="1" revision="5f9884aa352825291757dfd6694b874ad8c1805e" />
 </manifest>
 ```
 
