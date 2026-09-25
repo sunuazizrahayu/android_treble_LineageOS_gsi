@@ -1,0 +1,170 @@
+From f82de96bc7595d3ca0bead19e7bf905dd3baa527 Mon Sep 17 00:00:00 2001
+From: MisterZtr <andey2004586@gmail.com>
+Date: Fri, 5 Jun 2026 10:00:00 +0300
+Subject: [PATCH 02/10] lineage: use own config and targets
+
+---
+ AndroidProducts.mk    | 11 +++++++++++
+ lineage.mk            | 16 +++++++++++++++-
+ lineage_arm64_bgN4.mk | 20 ++++++++++++++++++++
+ lineage_arm64_bgNE.mk | 22 ++++++++++++++++++++++
+ lineage_arm64_bvN4.mk | 20 ++++++++++++++++++++
+ lineage_arm64_bvNE.mk | 22 ++++++++++++++++++++++
+ 6 files changed, 110 insertions(+), 1 deletion(-)
+ create mode 100644 AndroidProducts.mk
+ create mode 100644 lineage_arm64_bgN4.mk
+ create mode 100644 lineage_arm64_bgNE.mk
+ create mode 100644 lineage_arm64_bvN4.mk
+ create mode 100644 lineage_arm64_bvNE.mk
+
+diff --git a/AndroidProducts.mk b/AndroidProducts.mk
+new file mode 100644
+index 0000000..0a439c3
+--- /dev/null
++++ b/AndroidProducts.mk
+@@ -0,0 +1,11 @@
++#
++# Copyright (C) 2025 The LineageOS Project
++#
++# SPDX-License-Identifier: Apache-2.0
++#
++
++PRODUCT_MAKEFILES += \
++    $(LOCAL_DIR)/lineage_arm64_bgN4.mk \
++    $(LOCAL_DIR)/lineage_arm64_bgNE.mk \
++    $(LOCAL_DIR)/lineage_arm64_bvN4.mk \
++    $(LOCAL_DIR)/lineage_arm64_bvNE.mk
+diff --git a/lineage.mk b/lineage.mk
+index 172bb01..c09703b 100644
+--- a/lineage.mk
++++ b/lineage.mk
+@@ -1,3 +1,17 @@
+ $(call inherit-product, vendor/lineage/config/common_full_phone.mk)
++$(call inherit-product, vendor/lineage/config/BoardConfigSoong.mk)
++$(call inherit-product, vendor/lineage/config/BoardConfigLineage.mk)
++$(call inherit-product, device/lineage/sepolicy/common/sepolicy.mk)
+ -include vendor/lineage/build/core/config.mk
+--include vendor/lineage/build/core/apicheck.mk
++
++PRODUCT_DEVICE := generic_arm64
++PRODUCT_MANUFACTURER := google
++
++# Bootanimation
++TARGET_BOOT_ANIMATION_RES := 1080
++
++# APN
++PRODUCT_PACKAGES += apns-conf.xml
++
++#Oplus fingerprint
++$(call soong_config_set,surfaceflinger,udfps_lib,//hardware/oplus:libudfps_extension.oplus)
+diff --git a/lineage_arm64_bgN4.mk b/lineage_arm64_bgN4.mk
+new file mode 100644
+index 0000000..20e52c5
+--- /dev/null
++++ b/lineage_arm64_bgN4.mk
+@@ -0,0 +1,20 @@
++TARGET_GAPPS_ARCH := arm64
++include build/make/target/product/aosp_arm64.mk
++$(call inherit-product, device/phh/treble/base.mk)
++
++$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)
++$(call inherit-product, device/phh/treble/lineage.mk)
++
++PRODUCT_NAME := lineage_arm64_bgN4
++PRODUCT_BRAND := google
++PRODUCT_MODEL := Generic System
++
++# Overwrite the inherited "emulator" characteristics
++PRODUCT_CHARACTERISTICS := device
++
++LINEAGE_BUILDTYPE := GAPPS
++LINEAGE_BUILD := GSI
++
++#EXT4
++LINEAGE_EXTRAVERSION := -EXT4
++PRODUCT_EXTRA_VNDK_VERSIONS += 28 29
+diff --git a/lineage_arm64_bgNE.mk b/lineage_arm64_bgNE.mk
+new file mode 100644
+index 0000000..ad9d154
+--- /dev/null
++++ b/lineage_arm64_bgNE.mk
+@@ -0,0 +1,22 @@
++TARGET_GAPPS_ARCH := arm64
++include build/make/target/product/aosp_arm64.mk
++$(call inherit-product, device/phh/treble/base.mk)
++
++$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)
++$(call inherit-product, device/phh/treble/lineage.mk)
++
++PRODUCT_NAME := lineage_arm64_bgNE
++PRODUCT_BRAND := google
++PRODUCT_MODEL := Generic System
++
++# Overwrite the inherited "emulator" characteristics
++PRODUCT_CHARACTERISTICS := device
++
++LINEAGE_BUILDTYPE := GAPPS
++LINEAGE_BUILD := GSI
++
++#EROFS
++LINEAGE_EXTRAVERSION := -EROFS
++GSI_FILE_SYSTEM_TYPE := erofs
++BOARD_EROFS_COMPRESSOR := lz4hc,9
++TARGET_PRODUCT_PROP += device/phh/treble/product.prop
+diff --git a/lineage_arm64_bvN4.mk b/lineage_arm64_bvN4.mk
+new file mode 100644
+index 0000000..1990ecb
+--- /dev/null
++++ b/lineage_arm64_bvN4.mk
+@@ -0,0 +1,20 @@
++TARGET_GAPPS_ARCH := arm64
++include build/make/target/product/aosp_arm64.mk
++$(call inherit-product, device/phh/treble/base.mk)
++
++
++$(call inherit-product, device/phh/treble/lineage.mk)
++
++PRODUCT_NAME := lineage_arm64_bvN4
++PRODUCT_BRAND := google
++PRODUCT_MODEL := Generic System
++
++# Overwrite the inherited "emulator" characteristics
++PRODUCT_CHARACTERISTICS := device
++
++LINEAGE_BUILDTYPE := VANILLA
++LINEAGE_BUILD := GSI
++
++#EXT4
++LINEAGE_EXTRAVERSION := -EXT4
++PRODUCT_EXTRA_VNDK_VERSIONS += 28 29
+diff --git a/lineage_arm64_bvNE.mk b/lineage_arm64_bvNE.mk
+new file mode 100644
+index 0000000..9b454c3
+--- /dev/null
++++ b/lineage_arm64_bvNE.mk
+@@ -0,0 +1,22 @@
++TARGET_GAPPS_ARCH := arm64
++include build/make/target/product/aosp_arm64.mk
++$(call inherit-product, device/phh/treble/base.mk)
++
++
++$(call inherit-product, device/phh/treble/lineage.mk)
++
++PRODUCT_NAME := lineage_arm64_bvNE
++PRODUCT_BRAND := google
++PRODUCT_MODEL := Generic System
++
++# Overwrite the inherited "emulator" characteristics
++PRODUCT_CHARACTERISTICS := device
++
++LINEAGE_BUILDTYPE := VANILLA
++LINEAGE_BUILD := GSI
++
++#EROFS
++LINEAGE_EXTRAVERSION := -EROFS
++GSI_FILE_SYSTEM_TYPE := erofs
++BOARD_EROFS_COMPRESSOR := lz4hc,9
++TARGET_PRODUCT_PROP += device/phh/treble/product.prop
+-- 
+2.54.0
+
