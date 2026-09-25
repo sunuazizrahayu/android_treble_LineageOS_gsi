@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Local manifest untuk LineageOS 23.2 (Android 16) TrebleDroid GSI
+     jalur LINEAGE (dengan patches upstream MisterZtr/LineageOS_gsi).
+     Cara pakai: ./setup.sh [SOURCE_DIR] --upstream
+     (atau salin file ini ke .repo/local_manifests/manifest.xml).
+     PENTING: jangan gabungkan dengan patches/ repo ini (treble-only) -
+     kedua set menyelesaikan masalah yang sama dengan cara berlawanan
+     (charger, APN, vibrator) dan akan konflik bila dipakai bersamaan.
+     Untuk jalur lineage, terapkan HANYA patches upstream. -->
+<manifest>
+    <remote name="github" fetch="https://github.com/" />
+    <remote name="gitlab" fetch="https://gitlab.com/" />
+
+    <!-- TrebleDroid device tree & antarmuka vendor -->
+    <project path="device/phh/treble" remote="github" name="TrebleDroid/device_phh_treble" revision="android-16.0" />
+    <project path="vendor/interfaces" remote="github" name="TrebleDroid/vendor_interfaces" revision="android-16.0" />
+    <project path="treble_app" remote="github" name="TrebleDroid/treble_app" revision="master" />
+
+    <!-- Tambahan hardware Lineage -->
+    <project path="hardware/oplus" remote="github" name="LineageOS/android_hardware_oplus" revision="lineage-23.2" />
+
+    <!-- GApps (wajib untuk varian bgN/bgNE; boleh dihapus dari file ini
+         bila hanya build vanilla/bvN, menghemat unduhan) -->
+    <project path="vendor/gapps" remote="gitlab" name="MindTheGapps/vendor_gapps" revision="baklava" />
+
+    <!-- Overlay vendor & perkakas phh (overlay memakai fork MisterZtr
+         karena patches upstream menargetkannya) -->
+    <project path="vendor/hardware_overlay" remote="github" name="MisterZtr/vendor_hardware_overlay" revision="main" />
+    <project path="vendor/vndk-tests" remote="github" name="phhusson/vendor_vndk-tests" revision="master" />
+    <project path="vendor/lptools" remote="github" name="phhusson/vendor_lptools" revision="master" />
+    <project path="vendor/magisk" remote="github" name="phhusson/vendor_magisk" revision="android-10.0" />
+
+    <project path="packages/apps/QcRilAm" remote="github" name="AndyCGYan/android_packages_apps_QcRilAm" revision="master" />
+
+    <!-- Prebuilt VNDK untuk kompatibilitas vendor lama -->
+    <project path="prebuilts/vndk/v28" remote="github" name="naz664/prebuilts_vndk_v28" revision="master" />
+    <project path="prebuilts/vndk/v29" remote="aosp" name="platform/prebuilts/vndk/v29" clone-depth="1" revision="bef5d37dda9360940964f097d612c8032e140961" />
+    <project path="prebuilts/vndk/v30" remote="aosp" name="platform/prebuilts/vndk/v30" clone-depth="1" revision="5f9884aa352825291757dfd6694b874ad8c1805e" />
+
+    <!-- Buang repo compat Lineage: modul prebuilt protobuf-nya bernama
+         persis sama dengan prebuilt AOSP (prebuilts/misc) sehingga Soong
+         gagal ("already defined"). -->
+    <remove-project name="LineageOS/android_hardware_lineage_compat" />
+</manifest>

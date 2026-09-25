@@ -9,6 +9,7 @@ Unofficial **LineageOS 23.2 GSI (Generic System Image, Android 16)** berbasis Tr
 | File | Fungsi |
 |---|---|
 | `manifest.xml` | Local manifest **minimal** TrebleDroid: `device/phh/treble`, `vendor/interfaces`, `hardware/oplus`, `vendor/hardware_overlay`, prebuilt VNDK v28/v29. Disalin ke `.repo/local_manifests/` saat setup. Contoh entri GApps ada di komentar atas file-nya. |
+| `manifest-lineage.xml` | Local manifest **lengkap** untuk jalur Lineage (patches upstream): treble_app, QcRilAm, perkakas phh, overlay fork MisterZtr, VNDK v28–v30, GApps. Dipakai via `./setup.sh DIR --upstream`. Jangan campur dengan `patches/` repo ini. |
 | `setup.sh` | Otomatisasi: `repo init` → pasang manifest → `repo sync` → terapkan patches. |
 | `build.sh` | Build GSI per varian (vanilla/gapps × erofs/ext4). |
 | `patches/` | Patches lokal + `apply-patches.sh` idempotent untuk build treble tanpa patch upstream. |
@@ -87,6 +88,41 @@ Catatan:
   `git config --global user.name "nama"` dan `git config --global user.email "email"`, lalu ulangi apply-nya.
 - Alternatif otomatis untuk semua langkah di atas: `./setup.sh ~/LineageOS` (lihat isi `setup.sh`).
 
+## 4. Build Lineage GSI (patches upstream)
+
+Jalur ini menghasilkan GSI LineageOIS yang bisa boot di HP real (sudah
+terbukti), memakai ~314 patch TrebleDroid dari `MisterZtr/LineageOS_gsi`.
+Setup-nya sama seperti bagian 2, dengan dua perbedaan:
+
+```bash
+# pakai manifest-lineage.xml (bukan manifest.xml)
+curl -L https://raw.githubusercontent.com/sunuazizrahayu/android_treble_LineageOS_gsi/23.2/manifest-lineage.xml -o .repo/local_manifests/manifest.xml
+
+# atau otomatis:
+./setup.sh ~/LineageOS --upstream
+```
+
+Lalu terapkan **hanya** patches upstream (314 file, butuh git identity):
+
+```bash
+git clone https://github.com/MisterZtr/LineageOS_gsi.git LineageOS_gsi_upstream -b lineage-23.2 --depth 1
+bash LineageOS_gsi_upstream/patches/apply-patches.sh .
+```
+
+Terakhir build (tanpa `generate.sh` — definisi product `lineage_*` sudah
+dibawa oleh patches):
+
+```bash
+. build/envsetup.sh
+breakfast lineage_arm64_bvN4-bp4a-userdebug   # vanilla ext4, contoh awal yang disarankan
+make systemimage -j$(nproc --all)
+```
+
+> JANGAN campur kedua set patch. `patches/` repo ini (jalur treble) dan
+> patches upstream (jalur lineage) menyelesaikan masalah yang sama dengan
+> cara berlawanan (charger, APN, vibrator) — dipakai bersamaan pasti konflik.
+> Pilih satu jalur per source tree.
+
 ## 3. Build
 
 ```bash
@@ -126,14 +162,14 @@ Nama lunch target lengkap (butuh patches upstream):
 
 `bvN` = vanilla (tanpa GApps), `bgN` = dengan GApps (MindTheGapps). EROFS butuh kernel 5.4+ di perangkat; bila ragu/bootloop, pakai varian ext4 (read-write penuh).
 
-## 4. Kompres hasil (opsional)
+## 5. Kompres hasil (opsional)
 
 ```bash
 cd out/target/product/tdgsi_arm64_ab
 7z a system.img.xz system.img
 ```
 
-## 5. Sync ulang / rebuild
+## 6. Sync ulang / rebuild
 
 ```bash
 cd ~/LineageOS_gsi

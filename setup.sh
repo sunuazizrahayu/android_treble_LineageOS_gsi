@@ -3,25 +3,46 @@
 # Jalankan dari MESIN BUILD (Ubuntu 22.04/24.04, RAM 16GB+, disk kosong 400GB+),
 # BUKAN di container kecil. Lihat README.md untuk prasyarat lengkap.
 #
-#   ./setup.sh [SOURCE_DIR]
+#   ./setup.sh [SOURCE_DIR] [--upstream]
 #
 # Contoh:
-#   ./setup.sh ~/LineageOS
+#   ./setup.sh ~/LineageOS              # jalur treble (patches/ repo ini)
+#   ./setup.sh ~/LineageOS --upstream   # jalur lineage (patches MisterZtr)
 #
-# Langkah yang dilakukan:
+# Dua jalur ini SALING LEPAS, jangan campur patches-nya:
+# - treble   : manifest.xml + patches/ repo ini, lalu generate.sh + lunch treble_*
+# - upstream : manifest-lineage.xml + patches MisterZtr, lalu lunch lineage_*
+#   (tanpa generate.sh - definisi product lineage_* datang dari patches)
+#
+# Langkah yang dilakukan (mode treble):
 #   1. Cek tool wajib (git, curl, repo)
 #   2. repo init LineageOS/android -b lineage-23.2
-#   3. Pasang manifest.xml repo ini ke .repo/local_manifests/
+#   3. Pasang manifest repo ini ke .repo/local_manifests/
 #   4. repo sync
-#   5. Terapkan patches (patches/apply-patches.sh bila ada,
-#      fallback ke MisterZtr/LineageOS_gsi upstream)
+#   5. Terapkan patches
 #   6. Generate definisi product TrebleDroid (device/phh/treble/generate.sh)
 
 set -euo pipefail
 
-SOURCE_DIR="${1:-$HOME/LineageOS}"
+SOURCE_DIR="$HOME/LineageOS"
+UPSTREAM=0
+for arg in "$@"; do
+  case "$arg" in
+    --upstream) UPSTREAM=1 ;;
+    -h|--help)
+      echo "Pakai: $0 [SOURCE_DIR] [--upstream]"
+      echo "  SOURCE_DIR  folder source tree (default: \$HOME/LineageOS)"
+      echo "  --upstream  jalur lineage (patches MisterZtr/LineageOS_gsi)"
+      exit 0 ;;
+    *) SOURCE_DIR="$arg" ;;
+  esac
+done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MANIFEST_SRC="$SCRIPT_DIR/manifest.xml"
+if [ "$UPSTREAM" -eq 1 ]; then
+  MANIFEST_SRC="$SCRIPT_DIR/manifest-lineage.xml"
+else
+  MANIFEST_SRC="$SCRIPT_DIR/manifest.xml"
+fi
 LINEAGE_BRANCH="lineage-23.2"
 JOBS="$(nproc --all 2>/dev/null || echo 4)"
 
@@ -73,7 +94,16 @@ repo sync --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j"
 
 # 5. Terapkan patches
 echo "--- terapkan patches ---"
-if [ -f "$SCRIPT_DIR/patches/apply-patches.sh" ]; then
+if [ "$UPSTREAM" -eq 1 ]; then
+  # Jalur lineage: HANYA patches upstream, jangan campur patches/ repo ini.
+  if [ ! -d "LineageOS_gsi/.git" ]; then
+    git clone https://github.com/MisterZtr/LineageOS_gsi.git LineageOS_gsi -b lineage-23.2 --depth 1
+  else
+    git -C LineageOS_gsi fetch origin lineage-23.2 --depth 1
+    git -C LineageOS_gsi checkout -f origin/lineage-23.2
+  fi
+  bash LineageOS_gsi/patches/apply-patches.sh .
+elif [ -f "$SCRIPT_DIR/patches/apply-patches.sh" ]; then
   # setup.sh dijalankan dari checkout repo ini di luar source tree:
   # salin patches lokal ke dalam source tree
   mkdir -p LineageOS_gsi
@@ -91,15 +121,26 @@ else
   bash LineageOS_gsi/patches/apply-patches.sh .
 fi
 
-# 6. Generate definisi product TrebleDroid (wajib agar lunch mengenal
-# target treble_*. AndroidProducts.mk tidak ikut tersync dari git).
-echo "--- generate treble products ---"
-(cd device/phh/treble && bash generate.sh)
-ls device/phh/treble/treble_arm64_bvN.mk device/phh/treble/AndroidProducts.mk
+# 6. Generate definisi product TrebleDroid (hanya jalur treble).
+# Jalur upstream dilewati: definisi product lineage_* datang dari patches.
+if [ "$UPSTREAM" -eq 0 ]; then
+  echo "--- generate treble products ---"
+  (cd device/phh/treble && bash generate.sh)
+  ls device/phh/treble/treble_arm64_bvN.mk device/phh/treble/AndroidProducts.mk
+fi
 
 echo ""
 echo "=== Setup selesai ==="
-echo "Lanjut ke build, contoh (VANILLA erofs):"
-echo "  cd $SOURCE_DIR && bash LineageOS_gsi/build.sh --variant vanilla --fs erofs"
-echo "Atau jika repo ini di-checkout terpisah: bash $SCRIPT_DIR/build.sh --variant vanilla --fs erofs"
-echo "Detail semua varian ada di README.md dan 'build.sh --help'."
+if [ "$UPSTREAM" -eq 1 ]; then
+  echo "Lanjut ke build Lineage, contoh (VANILLA ext4):"
+  echo "  cd $SOURCE_DIR"
+  echo "  . build/envsetup.sh"
+  echo "  breakfast lineage_arm64_bvN4-bp4a-userdebug"
+  echo "  make systemimage -j\$(nproc --all)"
+else
+  echo "Lanjut ke build treble:"
+  echo "  cd $SOURCE_DIR"
+  echo "  . build/envsetup.sh"
+  echo "  lunch treble_arm64_bvN-bp4a-userdebug"
+  echo "  make systemimage -j\$(nproc --all) DISABLE_DEXPREOPT_CHECK=true"
+fi
