@@ -7,7 +7,7 @@
     <!-- TrebleDroid device tree & antarmuka vendor -->
     <project path="device/phh/treble" remote="github" name="TrebleDroid/device_phh_treble" revision="android-16.0" />
     <project path="vendor/interfaces" remote="github" name="TrebleDroid/vendor_interfaces" revision="android-16.0" />
-    <project path="treble_app" remote="github" name="TrebleDroid/treble_app" revision="master" />
+    <project path="treble_app" remote="github" name="AndroidROMx/treble_app" revision="master" />
 
     <!-- Tambahan hardware Lineage -->
     <project path="hardware/oplus" remote="github" name="LineageOS/android_hardware_oplus" revision="lineage-23.2" />
@@ -18,7 +18,7 @@
 
     <!-- Overlay vendor & perkakas phh (overlay memakai fork MisterZtr
          karena patches lineage kurasi menargetkannya) -->
-    <project path="vendor/hardware_overlay" remote="github" name="MisterZtr/vendor_hardware_overlay" revision="main" />
+    <project path="vendor/hardware_overlay" remote="github" name="androidROMx/vendor_hardware_overlay" revision="main" />
     <project path="vendor/vndk-tests" remote="github" name="phhusson/vendor_vndk-tests" revision="master" />
     <project path="vendor/lptools" remote="github" name="phhusson/vendor_lptools" revision="master" />
     <project path="vendor/magisk" remote="github" name="phhusson/vendor_magisk" revision="android-10.0" />
