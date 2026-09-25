@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Sunu Aziz Rahayu <sunuazizrahayu@users.noreply.github.com>
+Date: Fri, 26 Sep 2026 00:00:00 +0700
+Subject: [PATCH] lineage: drop OPlus UDFPS extension for generic GSI
+
+libudfps_extension.oplus (hardware/oplus/fingerprint) memakai
+generated_kernel_header_defaults, satu-satunya penarik generator
+kernel headers vendor/lineage yang gagal di GSI tanpa kernel
+("No rule to make target 'headers_install'").
+
+Ekstensi UDFPS khusus OPlus ini opsional untuk GSI generik;
+surfaceflinger kembali ke default tanpa Extension.
+---
+ lineage.mk | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/lineage.mk b/lineage.mk
+index 0000000..0000000 100644
+--- a/lineage.mk
++++ b/lineage.mk
+@@ -12,6 +12,3 @@ TARGET_BOOT_ANIMATION_RES := 1080
+
+ # APN
+ PRODUCT_PACKAGES += apns-conf.xml
+-
+-#Oplus fingerprint
+-$(call soong_config_set,surfaceflinger,udfps_lib,//hardware/oplus:libudfps_extension.oplus)
+--
+2.54.0
