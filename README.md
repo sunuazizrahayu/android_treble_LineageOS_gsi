@@ -8,7 +8,7 @@ Unofficial **LineageOS 23.2 GSI (Generic System Image, Android 16)** berbasis Tr
 
 | File | Fungsi |
 |---|---|
-| `manifest.xml` | Local manifest **minimal** TrebleDroid: `device/phh/treble`, `vendor/interfaces`, `hardware/oplus`. Disalin ke `.repo/local_manifests/` saat setup. Entri tambahan (GApps, overlay, VNDK, dll) lihat bagian "Menambah entri manifest (opsional)". |
+| `manifest.xml` | Local manifest **minimal** TrebleDroid: `device/phh/treble`, `vendor/interfaces`, `hardware/oplus`, `vendor/hardware_overlay`. Disalin ke `.repo/local_manifests/` saat setup. Entri tambahan (GApps, VNDK, dll) lihat bagian "Menambah entri manifest (opsional)". |
 | `setup.sh` | Otomatisasi: `repo init` → pasang manifest → `repo sync` → terapkan patches. |
 | `build.sh` | Build GSI per varian (vanilla/gapps × erofs/ext4). |
 | `patches/` | (Opsional, bila ditambahkan nanti) patches lokal + `apply-patches.sh`. Selama belum ada, `setup.sh` memakai patches upstream `MisterZtr/LineageOS_gsi` sebagai fallback. |
@@ -113,9 +113,6 @@ lalu `repo sync` ulang:
 
     <!-- Panel pengaturan Treble (GSI tetap boot tanpanya) -->
     <project path="treble_app" remote="github" name="TrebleDroid/treble_app" revision="master" />
-
-    <!-- Overlay layar per-device (notch dkk) -->
-    <project path="vendor/hardware_overlay" remote="github" name="MisterZtr/vendor_hardware_overlay" revision="main" />
 
     <!-- Sinyal di sebagian device Qualcomm -->
     <project path="packages/apps/QcRilAm" remote="github" name="AndyCGYan/android_packages_apps_QcRilAm" revision="master" />

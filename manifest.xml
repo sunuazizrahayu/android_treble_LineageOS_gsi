@@ -2,7 +2,7 @@
 <!-- Local manifest MINIMAL untuk LineageOS 23.2 (Android 16) TrebleDroid GSI.
      Cara pakai: salin file ini ke .repo/local_manifests/manifest.xml
      di dalam source tree, lalu jalankan `repo sync`.
-     Hanya berisi 3 project wajib agar GSI vanilla bisa ke-build dan boot.
+     Hanya berisi project wajib agar GSI vanilla bisa ke-build dan boot.
      Butuh GApps / kompatibilitas vendor lama? Lihat README.md bagian
      "Menambah entri manifest (opsional)".
      Lihat setup.sh / README.md untuk alur lengkap. -->
@@ -15,4 +15,9 @@
 
     <!-- Hampir wajib: dependensi build Lineage, tanpa ini lunch target bisa gagal -->
     <project path="hardware/oplus" remote="github" name="LineageOS/android_hardware_oplus" revision="lineage-23.2" />
+
+    <!-- Wajib: overlay tampilan per-device, di-include langsung oleh
+         device/phh/treble/base.mk (tanpa ini lunch gagal:
+         "vendor/hardware_overlay/overlay.mk does not exist") -->
+    <project path="vendor/hardware_overlay" remote="github" name="AndroidROMx/vendor_hardware_overlay" revision="main" />
 </manifest>
