@@ -8,7 +8,8 @@
      (charger, APN, vibrator) dan akan konflik bila dipakai bersamaan.
      Untuk jalur lineage, terapkan HANYA patches upstream. -->
 <manifest>
-    <remote name="github" fetch="https://github.com/" />
+    <!-- remote github/aosp dipakai bawaan Lineage (jangan didefinisikan
+         ulang di sini, repo menolak duplikat dengan atribut berbeda) -->
     <remote name="gitlab" fetch="https://gitlab.com/" />
 
     <!-- TrebleDroid device tree & antarmuka vendor -->
