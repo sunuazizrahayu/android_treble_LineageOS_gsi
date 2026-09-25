@@ -30,6 +30,7 @@
          agar unduhan kecil). Tanpa ini lunch gagal di board_config.mk
          ("VNDK version 29 not found") -->
     <project path="prebuilts/vndk/v29" remote="aosp" name="platform/prebuilts/vndk/v29" clone-depth="1" revision="bef5d37dda9360940964f097d612c8032e140961" />
+    <project path="prebuilts/vndk/v30" remote="aosp" name="platform/prebuilts/vndk/v30" clone-depth="1" revision="5f9884aa352825291757dfd6694b874ad8c1805e" />
 
     <!-- Buang repo compat Lineage: modul prebuilt protobuf-nya bernama
          persis sama dengan prebuilt AOSP (prebuilts/misc) sehingga Soong
