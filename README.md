@@ -43,3 +43,12 @@ repo sync --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$
 ```
 bash LineageOS_gsi/patches/apply-patches.sh .
 ```
+
+### BUILD
+
+```
+. build/envsetup.sh
+ccache -M 50G -F 0
+breakfast lineage_arm64_bvN4-bp4a-userdebug
+make systemimage -j$(nproc --all)
+```
